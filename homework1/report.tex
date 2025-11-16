@@ -1,0 +1,179 @@
+\documentclass{article}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{geometry}
+
+\geometry{a4paper, margin=1in}
+
+\title{优化方法第一次作业报告}
+\author{3230104932 吴官旺}
+\date{\today}
+
+\begin{document}
+\maketitle
+\section*{第一题}
+\begin{proof}
+考虑矩阵范数的定义
+\[ \Vert A \Vert = \max_{x \neq 0} \frac{\Vert Ax \Vert }{\Vert x \Vert } \]
+则有$\forall x \neq 0$
+\[ \Vert A \Vert \geq \frac{\Vert Ax \Vert }{\Vert x \Vert } \]
+\[ \Vert Ax \Vert \leq \Vert A \Vert \Vert x \Vert \]
+当$x=0$时，显然也成立\\
+因此$\Vert Ax \Vert \leq \Vert A \Vert \Vert x \Vert$对于任意$x$与任意$A$均成立。\\
+那么则有
+\[ \Vert x \Vert = \Vert B^{-1}Bx \Vert \leq \Vert B^{-1} \Vert \Vert Bx \Vert \]
+即为
+\[ \Vert Bx \Vert \geq \frac{\Vert x \Vert }{\Vert B^{-1} \Vert } \]
+\end{proof}
+
+\section*{第二题}
+\subsection*{(a)}
+\begin{proof}
+要验证$(A+ab^T)^{-1}=A^{-1}-\frac{A^{-1}ab^TA^{-1}}{1+b^TA^{-1}a}$，只需验证
+\[(A+ab^T)(A^{-1}-\frac{A^{-1}ab^TA^{-1}}{1+b^TA^{-1}a})=I\]
+\begin{align*}
+&(A+ab^T)(A^{-1}-\frac{A^{-1}ab^TA^{-1}}{1+b^TA^{-1}a})\\
+=&AA^{-1}-\frac{AA^{-1}ab^TA^{-1}}{1+b^TA^{-1}a}+ab^TA^{-1}-\frac{ab^TA^{-1}ab^TA^{-1}}{1+b^TA^{-1}a}\\
+=&I-\frac{ab^TA^{-1}}{1+b^TA^{-1}a}+ab^TA^{-1}-\frac{ab^TA^{-1}ab^TA^{-1}}{1+b^TA^{-1}a}\\
+=&I+ab^TA^{-1}(1-\frac{1+b^TA^{-1}a}{1+b^TA^{-1}a})\\
+=&I
+\end{align*}
+\end{proof}
+\subsection*{(b)}
+\begin{proof}
+已知$H_k^{-1}=B_k$,且$B_k$与$H_k$均为对称矩阵\\
+若令$u=y_k-B_ks_k,   v^T=\frac{(y_k-B_ks_k)^{T}}{(y_k-B_ks_k)^Ts_k}$，则$B_{k+1}=B_k+uv^T$\\
+由(a)中公式可得
+\begin{align*}
+&B_{k+1}^{-1}\\
+=&B_k^{-1}-\frac{B_k^{-1}u v^T B_k^{-1}}{1+v^T B_k^{-1} u}\\
+=&B_k^{-1}-\frac{B_k^{-1}(y_k-B_ks_k) \frac{(y_k-B_ks_k)^{T}}{(y_k-B_ks_k)^Ts_k} B_k^{-1}}{1+\frac{(y_k-B_ks_k)^{T}}{(y_k-B_ks_k)^Ts_k} B_k^{-1}(y_k-B_ks_k)}\\
+=&B_k^{-1}-\frac{(B_k^{-1}y_k-s_k)(B_k^{-1}y_k-s_k)^T}{(y_k-B_ks_k)^Ts_k+(y_k-B_ks_k)^{T}B_k^{-1} (y_k-B_ks_k)}\\
+=&B_k^{-1}-\frac{(B_k^{-1}y_k-s_k)(B_k^{-1}y_k-s_k)^T}{y_k^T B_k^{-1} y_k-s_k^T B_k^TB_k^{-1} y_k} \\
+=&H_k-\frac{(s_k-H_ky_k)(s_k-H_ky_k)^T}{(s_k-H_ky_k)^T y_k}\\
+=&H_{k+1}\\
+\end{align*}
+\end{proof}
+
+
+
+\section*{第三题}
+问题描述：使用最速下降法和纯牛顿法分别求解Rosenbrock函数和Beale函数的极小值点，比较两种方法的收敛速度和效果。
+\subsection*{方法描述}
+最速下降法是一种简单的优化算法，通过沿着负梯度方向更新变量来寻找函数的最小值。该方法的优点是实现简单，但在处理复杂函数时可能收敛较慢。
+
+纯牛顿法是一种二阶优化算法，通过利用Hessian矩阵的信息来加速收敛。该方法在接近最优解时表现良好，但计算Hessian矩阵的代价较高。
+
+在本次实验中，我们将这两种方法应用于Rosenbrock函数和Beale函数，并比较它们的收敛速度和效果。
+\subsection*{实验结果}
+实验代码见附录中的question3.py文件。以下是实验结果：
+\begin{itemize}
+    \item Rosenbrock函数
+    \begin{itemize}
+        \item 最速下降法：迭代次数为8753，最终梯度范数为9.92e-06，目标函数值为0.000000。
+        \item 纯牛顿法：迭代次数为5，最终梯度范数为8.61e-06，目标函数值为0.000000。
+    \end{itemize}
+    \item Beale函数
+    \begin{itemize}
+        \item 最速下降法：迭代次数为10000，最终梯度范数为8.22e-02，目标函数值为0.669522。
+        \item 纯牛顿法：迭代次数为40，最终梯度范数为1.97e-17，目标函数值为14.203125。
+    \end{itemize}
+\end{itemize}
+\subsection*{结果分析}
+从实验结果可以看出，纯牛顿法在收敛速度和效果上均优于最速下降法。这是因为纯牛顿法利用了Hessian矩阵的信息，使得在接近最优解时能够更快地收敛。然而，最速下降法由于其简单性，在某些情况下仍然具有一定的优势，特别是在计算资源有限的情况下。
+
+\section*{第四题}
+问题描述：优化一个四次函数，并观察在在不同初始点和不同$\rho$值下的优化效果。并且对比牛顿法与带线搜索牛顿法的收敛速度与鲁棒性
+\subsection*{方法描述}
+带线搜索牛顿法是在每次迭代中引入线搜索的策略，以确定最优步长，从而提高收敛速度和鲁棒性。
+\subsection*{实验结果}
+\subsubsection*{初始点 $x^{(0)} = [\cos(70^\circ), \sin(70^\circ), \cos(70^\circ), \sin(70^\circ)]^T$}
+
+\begin{table}[h!]
+\centering
+\caption{不同 $\sigma$ 值下的牛顿法性能比较 ($x^{(0)} = [\cos(70^\circ), \sin(70^\circ), \cos(70^\circ), \sin(70^\circ)]^T$)}
+\begin{tabular}{ccccc}
+\toprule
+$\sigma$ 值 & 方法 & 迭代次数 & 最终梯度范数 & 目标函数值 \\
+\midrule
+\multirow{2}{*}{1} 
+& 纯牛顿法 & 8 & $4.85 \times 10^{-6}$ & $0.000000$ \\
+& 带线搜索牛顿法 & 5 & $7.13 \times 10^{-7}$ & $0.000000$ \\
+\addlinespace
+\multirow{2}{*}{$10^4$} 
+& 纯牛顿法 & 19 & $1.19 \times 10^{-6}$ & $0.000000$ \\
+& 带线搜索牛顿法 & 8 & $6.36 \times 10^{-6}$ & $0.000000$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{初始点 $x^{(0)} = [\cos(50^\circ), \sin(50^\circ), \cos(50^\circ), \sin(50^\circ)]^T$}
+
+\begin{table}[h!]
+\centering
+\caption{不同 $\sigma$ 值下的牛顿法性能比较 ($x^{(0)} = [\cos(50^\circ), \sin(50^\circ), \cos(50^\circ), \sin(50^\circ)]^T$)}
+\begin{tabular}{ccccc}
+\toprule
+$\sigma$ 值 & 方法 & 迭代次数 & 最终梯度范数 & 目标函数值 \\
+\midrule
+\multirow{2}{*}{1} 
+& 纯牛顿法 & 8 & $3.11 \times 10^{-6}$ & $0.000000$ \\
+& 带线搜索牛顿法 & 5 & $8.69 \times 10^{-7}$ & $0.000000$ \\
+\addlinespace
+\multirow{2}{*}{$10^4$} 
+& 纯牛顿法 & 19 & $8.71 \times 10^{-7}$ & $0.000000$ \\
+& 带线搜索牛顿法 & 8 & $7.77 \times 10^{-6}$ & $0.000000$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{结果分析}
+线搜索的效果：无论$ \sigma$的值是多少，带线搜索的牛顿法收敛更快，但当 $\sigma$ 越大时，两种方法都需要更多迭代次数，而不同初始点对收敛行为有一定影响，但整体模式相似
+
+
+
+\section*{第五题}
+问题描述：修改版LASSO问题，使用Huber函数平滑了L1范数，使其处处可微。参数 $\mu$ 控制正则化强度，$\delta$ 是平滑参数。
+对比最速梯度下降与bb方法的收敛速度差异。
+\subsection*{方法描述}
+Barzilai-Borwein方法： 一种拟牛顿法，通过一种简单的公式来近似Hessian矩阵，从而产生一个高效的步长选择策略
+\subsection*{实验结果}
+\subsection*{参数设置: $\mu = 0.01$, $\delta = 10^{-5}$}
+
+\begin{table}[h!]
+\centering
+\caption{修改版LASSO问题的优化方法比较 ($\mu = 0.01$, $\delta = 10^{-5}$)}
+\begin{tabular}{lcccccc}
+\toprule
+方法 & 收敛状态 & 迭代次数 & 最终梯度范数 & 目标函数值 & 解的稀疏度 & 与真实解的误差 \\
+\midrule
+最速下降法 & 未收敛 & 50000 & $1.25 \times 10^{-1}$ & 0.594100 & 631/1024 & 1.520776 \\
+Barzilai-Borwein 方法 & 收敛 & 8540 & $9.67 \times 10^{-4}$ & 0.507155 & 102/1024 & 0.000517 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{参数设置: $\mu = 0.001$, $\delta = 10^{-6}$}
+
+\begin{table}[h!]
+\centering
+\caption{修改版LASSO问题的优化方法比较 ($\mu = 0.001$, $\delta = 10^{-6}$)}
+\begin{tabular}{lcccccc}
+\toprule
+方法 & 收敛状态 & 迭代次数 & 最终梯度范数 & 目标函数值 & 解的稀疏度 & 与真实解的误差 \\
+\midrule
+最速下降法 & 未收敛 & 50000 & $3.35 \times 10^{-2}$ & 0.083561 & 897/1024 & 3.623616 \\
+Barzilai-Borwein 方法 & 未收敛 & 50000 & $6.35 \times 10^{-3}$ & 0.057715 & 603/1024 & 1.261220 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\subsection*{结果分析}
+BB方法的优势：
+在 $\mu=0.01$ 时，BB方法成功收敛，而最速下降法未能收敛，BB方法的收敛速度明显更快，BB方法得到的解更稀疏，说明正则化效果更好
+
+当 $\mu$ 从 0.01 减小到 0.001 时，问题变得更难优化，在 $\mu=0.001$ 时，两种方法都未能收敛到要求的精度
+
+\end{document}

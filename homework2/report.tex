@@ -1,0 +1,453 @@
+\documentclass[fontset=none]{ctexart}  
+
+\usepackage{fontspec}
+\setCJKmainfont{Noto Serif CJK SC}[
+    BoldFont = {Noto Serif CJK SC Bold},
+]
+
+\setmainfont{TeX Gyre Termes}
+\setsansfont{TeX Gyre Heros}
+\setmonofont{TeX Gyre Cursor}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor} 
+\usepackage{graphicx}   
+\usepackage{caption}    
+\usepackage{subcaption} 
+\usepackage{float}
+\usepackage{enumitem}   
+\usepackage{amssymb}  
+
+\lstset{
+  language=Python,          
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue}\bfseries, 
+  stringstyle=\color{red},    
+  commentstyle=\color{green}\itshape, 
+  identifierstyle=\color{black}, 
+  showstringspaces=false,    
+  numbers=left,              
+  numberstyle=\tiny\color{gray}, 
+  breaklines=true,           
+  frame=single,              
+  rulecolor=\color{black!30},
+  backgroundcolor=\color{gray!10}, 
+  tabsize=4,                
+  extendedchars=true,        
+  escapeinside=``,          
+}
+
+\geometry{a4paper, margin=1in}
+
+\title{优化方法第二次作业报告}
+\author{3230104932 吴官旺}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{第一题：用CG算法优化希尔伯特系统}
+
+\subsection{算法}
+
+CG算法实现如下：
+
+\begin{lstlisting}
+def conjugate_gradient_method(A, b, x0=None, tol=1e-5, max_iter=None, save_full_data=False, filename="conjugate_gradient_results.txt"):
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    filepath = data_dir / filename
+    n = len(b)
+    if x0 is None:
+        x0 = np.zeros(n)
+    else:
+        x = x0.copy()
+    r = A `@` x - b  
+    p = -r.copy()
+    rsold = r `@` r  
+    if max_iter is None:
+        max_iter = n+1
+    with open(filepath, 'w') as file:
+        if save_full_data:
+            file.write("iteration,residual_norm,x\n")
+        else:
+            file.write("iteration,residual_norm\n")
+        for i in range(max_iter):
+            Ap = A `@` p         
+            alpha = rsold / (p `@` Ap) 
+            x += alpha * p
+            r += alpha * Ap
+            rsnew = r `@` r 
+            if save_full_data:
+                file.write(f"{i},{np.sqrt(rsnew)},{x.tolist()}\n")
+            else:
+                file.write(f"{i},{np.sqrt(rsnew)}\n")
+            if np.sqrt(rsnew) < tol:  
+                return x, i+1
+            beta = rsnew / rsold      
+            p = -r + beta * p         
+            rsold = rsnew
+    return x, max_iter
+\end{lstlisting}
+
+\subsection{实验结果}
+
+\begin{figure}[H] 
+    \centering 
+    \includegraphics[width=0.8\textwidth]{picture/question1_residual_convergence_5.png} 
+    \caption{当n=5时的残差收敛图} 
+    \label{fig:q1_n5}
+\end{figure}
+
+\begin{figure}[H] 
+    \centering 
+    \includegraphics[width=0.8\textwidth]{picture/question1_residual_convergence_8.png} 
+    \caption{当n=8时的残差收敛图} 
+    \label{fig:q1_n8}
+\end{figure}
+
+\begin{figure}[H] 
+    \centering 
+    \includegraphics[width=0.8\textwidth]{picture/question1_residual_convergence_12.png} 
+    \caption{当n=12时的残差收敛图} 
+    \label{fig:q1_n12}
+\end{figure}
+
+\begin{figure}[H] 
+    \centering 
+    \includegraphics[width=0.8\textwidth]{picture/question1_residual_convergence_20.png} 
+    \caption{当n=20时的残差收敛图} 
+    \label{fig:q1_n20}
+\end{figure}
+
+\subsection{实验分析}
+
+可以看出随着n的增大，残差的锯齿效应越明显，说明CG方法随着n增大收敛会变慢，但仍然在稳定收敛，说明CG方法稳定性好。
+
+\section{第二题：预处理共轭梯度法}
+
+\begin{proof}
+令$M=LL^T$，其中L为下三角矩阵，令$\hat{x}=L^Tx$，则
+\[\hat{A}\hat{x} = \hat{b}, \quad \hat{A}=L^{-1}AL^{-T},\quad \hat{b}=L^{-1}b\]
+
+对$\hat{A}\hat{x} = \hat{b}$应用CG算法得：
+\[
+\hat{x}_0 = L^T x_0, \quad \hat{r}_0 = \hat{b} - \hat{A} \hat{x}_0, \quad \hat{p}_0 = \hat{r}_0
+\]
+
+对于 \( k = 0, 1, 2, \ldots \)，执行：
+
+\begin{enumerate}[label=(\arabic*)]
+\item $\displaystyle \hat{\alpha}_k = \frac{\hat{r}_k^T \hat{r}_k}{\hat{p}_k^T \hat{A} \hat{p}_k}$
+\item $\hat{x}_{k+1} = \hat{x}_k + \hat{\alpha}_k \hat{p}_k$
+\item $\hat{r}_{k+1} = \hat{r}_k - \hat{\alpha}_k \hat{A} \hat{p}_k$
+\item $\displaystyle \hat{\beta}_k = \frac{\hat{r}_{k+1}^T \hat{r}_{k+1}}{\hat{r}_k^T \hat{r}_k}$
+\item $\hat{p}_{k+1} = \hat{r}_{k+1} + \hat{\beta}_k \hat{p}_k$
+\end{enumerate}
+
+\textbf{转换回原始变量：}
+
+\[
+\hat{x} = L^T x \Rightarrow x = L^{-T} \hat{x}
+\]
+\[
+\hat{r} = L^{-1} r \Rightarrow r = L \hat{r}
+\]
+\[
+p_k = L^{-T} \hat{p}_k \Rightarrow \hat{p}_k = L^T p_k
+\]
+
+\begin{align*}
+\hat{\alpha}_k &= \frac{\hat{r}_k^T \hat{r}_k}{\hat{p}_k^T \hat{A} \hat{p}_k} \\
+&= \frac{(L^{-1} r_k)^T (L^{-1} r_k)}{(L^T p_k)^T (L^{-1} A L^{-T}) (L^T p_k)} \\
+&= \frac{r_k^T L^{-T} L^{-1} r_k}{p_k^T L L^{-1} A L^{-T} L^T p_k} \\
+&= \frac{r_k^T M^{-1} r_k}{p_k^T A p_k}
+\end{align*}
+
+\begin{align*}
+\hat{\beta}_k &= \frac{\hat{r}_{k+1}^T \hat{r}_{k+1}}{\hat{r}_k^T \hat{r}_k} \\
+&= \frac{(L^{-1} r_{k+1})^T (L^{-1} r_{k+1})}{(L^{-1} r_k)^T (L^{-1} r_k)} \\
+&= \frac{r_{k+1}^T M^{-1} r_{k+1}}{r_k^T M^{-1} r_k}
+\end{align*}
+
+\[
+\hat{p}_{k+1} = \hat{r}_{k+1} + \hat{\beta}_k \hat{p}_k
+\]
+
+左乘 \( L^{-T} \)：
+\[
+L^{-T} \hat{p}_{k+1} = L^{-T} \hat{r}_{k+1} + \hat{\beta}_k L^{-T} \hat{p}_k
+\]
+\[
+p_{k+1} = M^{-1} r_{k+1} + \hat{\beta}_k p_k
+\]
+\end{proof}
+
+
+\section{第三题证明：Broyden类更新矩阵的奇异性}
+
+% 移除了内部嵌套的proof环境
+\noindent \textbf{问题描述}
+
+考虑Broyden类拟牛顿更新公式：
+\[
+B_{k+1} = B_k - \frac{B_k s_k s_k^T B_k}{s_k^T B_k s_k} + \frac{y_k y_k^T}{y_k^T s_k} + \phi_k (s_k^T B_k s_k) v_k v_k^T
+\]
+其中
+\[
+v_k = \left( \frac{y_k}{y_k^T s_k} - \frac{B_k s_k}{s_k^T B_k s_k} \right)
+\]
+且
+\[
+\mu_k = \frac{(s_k^T B_k s_k)(y_k^T H_k y_k)}{(s_k^T y_k)^2}, \quad H_k = B_k^{-1}
+\]
+
+当 $\phi = \phi_k^c = \frac{1}{1-\mu_k}$ 时，证明 $B_{k+1}$ 是奇异矩阵。
+
+\noindent 
+为简化记号，定义：
+\[
+a = s_k^T B_k s_k, \quad b = s_k^T y_k, \quad d = y_k^T H_k y_k
+\]
+则
+\[
+\mu_k = \frac{a d}{b^2}, \quad \phi_k^c = \frac{1}{1-\mu_k} = \frac{b^2}{b^2 - a d}
+\]
+
+\noindent 
+
+定义向量：
+\[
+z = H_k y_k - \frac{d}{b} s_k
+\]
+
+\noindent 
+
+将Broyden类更新公式应用于 $H_k y_k$：
+\begin{align*}
+B_{k+1} H_k y_k &= \left[ B_k - \frac{B_k s_k s_k^T B_k}{a} + \frac{y_k y_k^T}{b} + \phi_k a v_k v_k^T \right] H_k y_k \\
+&= B_k H_k y_k - \frac{B_k s_k s_k^T B_k}{a} H_k y_k + \frac{y_k y_k^T}{b} H_k y_k + \phi_k a v_k v_k^T H_k y_k
+\end{align*}
+
+逐项计算：
+
+(1) $B_k H_k y_k = y_k$
+
+(2) $\frac{B_k s_k s_k^T B_k}{a} H_k y_k = \frac{B_k s_k}{a} (s_k^T B_k H_k y_k) = \frac{B_k s_k}{a} (s_k^T y_k) = \frac{b}{a} B_k s_k$
+
+(3) $\frac{y_k y_k^T}{b} H_k y_k = \frac{y_k}{b} (y_k^T H_k y_k) = \frac{d}{b} y_k$
+
+(4) 计算 $v_k^T H_k y_k$：
+\begin{align*}
+v_k^T H_k y_k &= \left( \frac{y_k}{b} - \frac{B_k s_k}{a} \right)^T H_k y_k \\
+&= \frac{y_k^T H_k y_k}{b} - \frac{s_k^T B_k H_k y_k}{a} \\
+&= \frac{d}{b} - \frac{s_k^T y_k}{a} = \frac{d}{b} - \frac{b}{a}
+\end{align*}
+
+因此：
+\[
+\phi_k a v_k v_k^T H_k y_k = \phi_k a v_k \left( \frac{d}{b} - \frac{b}{a} \right)
+\]
+
+代入 $v_k = \frac{y_k}{b} - \frac{B_k s_k}{a}$：
+\begin{align*}
+B_{k+1} H_k y_k &= y_k - \frac{b}{a} B_k s_k + \frac{d}{b} y_k + \phi_k a \left( \frac{y_k}{b} - \frac{B_k s_k}{a} \right) \left( \frac{d}{b} - \frac{b}{a} \right) \\
+&= y_k \left( 1 + \frac{d}{b} + \phi_k \frac{a}{b} \left( \frac{d}{b} - \frac{b}{a} \right) \right) + B_k s_k \left( -\frac{b}{a} - \phi_k \left( \frac{d}{b} - \frac{b}{a} \right) \right)
+\end{align*}
+
+简化系数：
+
+$y_k$ 的系数：
+\[
+1 + \frac{d}{b} + \phi_k \left( \frac{a d}{b^2} - 1 \right) = 1 + \frac{d}{b} - \phi_k + \phi_k \frac{a d}{b^2}
+\]
+
+$B_k s_k$ 的系数：
+\[
+-\frac{b}{a} - \phi_k \left( \frac{d}{b} - \frac{b}{a} \right) = -\frac{b}{a} (1 - \phi_k) - \phi_k \frac{d}{b}
+\]
+
+因此：
+\begin{equation}
+B_{k+1} H_k y_k = y_k \left( 1 + \frac{d}{b} - \phi_k + \phi_k \frac{a d}{b^2} \right) + B_k s_k \left( -\frac{b}{a} (1 - \phi_k) - \phi_k \frac{d}{b} \right)
+\label{eq:BHy}
+\end{equation}
+
+\noindent 
+由拟牛顿条件，$B_{k+1} s_k = y_k$（与 $\phi_k$ 无关），因此：
+\begin{align*}
+B_{k+1} z &= B_{k+1} \left( H_k y_k - \frac{d}{b} s_k \right) \\
+&= B_{k+1} H_k y_k - \frac{d}{b} B_{k+1} s_k \\
+&= B_{k+1} H_k y_k - \frac{d}{b} y_k
+\end{align*}
+
+代入式 (\ref{eq:BHy})：
+\begin{align*}
+B_{k+1} z &= y_k \left( 1 + \frac{d}{b} - \phi_k + \phi_k \frac{a d}{b^2} - \frac{d}{b} \right) + B_k s_k \left( -\frac{b}{a} (1 - \phi_k) - \phi_k \frac{d}{b} \right) \\
+&= y_k \left( 1 - \phi_k + \phi_k \frac{a d}{b^2} \right) + B_k s_k \left( -\frac{b}{a} (1 - \phi_k) - \phi_k \frac{d}{b} \right)
+\label{eq:Bz}
+\end{align*}
+
+\noindent 
+
+令 $\phi_k = \phi_k^c = \frac{b^2}{b^2 - a d}$，计算各项系数：
+
+(1) $y_k$ 的系数：
+\begin{align*}
+1 - \phi_k + \phi_k \frac{a d}{b^2} &= 1 - \phi_k \left( 1 - \frac{a d}{b^2} \right) \\
+&= 1 - \frac{b^2}{b^2 - a d} \left( 1 - \frac{a d}{b^2} \right) \\
+&= 1 - \frac{b^2}{b^2 - a d} \cdot \frac{b^2 - a d}{b^2} = 0
+\end{align*}
+
+(2) $B_k s_k$ 的系数：
+\begin{align*}
+& -\frac{b}{a} (1 - \phi_k) - \phi_k \frac{d}{b} \\
+&= -\frac{b}{a} \left( 1 - \frac{b^2}{b^2 - a d} \right) - \frac{b^2}{b^2 - a d} \cdot \frac{d}{b} \\
+&= -\frac{b}{a} \cdot \frac{- a d}{b^2 - a d} - \frac{b d}{b^2 - a d} \\
+&= \frac{b d}{b^2 - a d} - \frac{b d}{b^2 - a d} = 0
+\end{align*}
+
+因此，当 $\phi_k = \phi_k^c$ 时，$B_{k+1} z = 0$。
+
+由于 $z$ 是非零向量（一般情况下 $H_k y_k$ 与 $s_k$ 线性无关），故 $B_{k+1}$ 是奇异矩阵。
+
+当 $\phi = \phi_k^c = \frac{1}{1-\mu_k}$ 时，Broyden类更新矩阵 $B_{k+1}$ 是奇异矩阵，这由非零向量 $z = H_k y_k - \frac{y_k^T H_k y_k}{y_k^T s_k} s_k$ 满足 $B_{k+1} z = 0$ 所保证。
+
+\section{第四题：用BFGS算法优化Rosenbrock函数与Powell奇异函数}
+
+BFGS算法如下：
+
+\begin{lstlisting}
+def BFGS_method(f, grad_f, x0, tol=1e-6, max_iter=1000, save_full_data=False, 
+         filename="BFGS_results.txt"):
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    filepath = data_dir / filename
+    
+    n = len(x0)
+    x = x0.copy()
+    H = np.eye(n)  
+    
+    with open(filepath, 'w') as file:
+        if save_full_data:
+            file.write("iteration,gradient_norm,x\n")
+        else:
+            file.write("iteration,gradient_norm\n")
+        
+        for i in range(max_iter):
+            grad = grad_f(x)
+            norm_grad = np.linalg.norm(grad)
+
+            if save_full_data:
+                file.write(f"{i},{norm_grad},{x.tolist()}\n")
+            else:
+                file.write(f"{i},{norm_grad}\n")
+            
+            if norm_grad < tol:
+                return x, i
+            
+            direction = -H `@` grad 
+            
+            def f_alpha(alpha):
+                return f(x + alpha * direction)
+            
+            def f_deriv_alpha(alpha):
+                return np.dot(grad_f(x + alpha * direction), direction)
+            
+            alpha_opt = wolfe_search(f_alpha, f_deriv_alpha)
+            s = alpha_opt * direction  
+            x_new = x + s
+            y = grad_f(x_new) - grad  
+            
+            rho = 1.0 / (y `@` s)  
+            I = np.eye(n)
+            H = (I - rho * np.outer(s, y)) `@` H `@` (I - rho * np.outer(y, s)) + rho * np.outer(s, s)
+            
+            x = x_new
+    
+    print("最大迭代次数达到，未收敛。")
+    return x, max_iter
+\end{lstlisting}
+
+\subsection{实验结果}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth} 
+    \includegraphics[width=\textwidth]{picture/Rosenbrock_gradient_convergence_n6.png}
+    \caption{n=6时的梯度下降图}
+    \label{fig:rosen_n6_grad}
+  \end{subfigure}
+  \hfill 
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{picture/Rosenbrock_residual_convergence_n6.png}
+    \caption{n=6时的残差下降图}
+    \label{fig:rosen_n6_res}
+  \end{subfigure}
+  \caption{n=6时Rosenbrock函数实验} 
+  \label{fig:rosen_n6}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth} 
+    \includegraphics[width=\textwidth]{picture/Rosenbrock_gradient_convergence_n8.png}
+    \caption{n=8时的梯度下降图}
+    \label{fig:rosen_n8_grad}
+  \end{subfigure}
+  \hfill 
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{picture/Rosenbrock_residual_convergence_n8.png}
+    \caption{n=8时的残差下降图}
+    \label{fig:rosen_n8_res}
+  \end{subfigure}
+  \caption{n=8时Rosenbrock函数实验} 
+  \label{fig:rosen_n8}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth} 
+    \includegraphics[width=\textwidth]{picture/Rosenbrock_gradient_convergence_n10.png}
+    \caption{n=10时的梯度下降图}
+    \label{fig:rosen_n10_grad}
+  \end{subfigure}
+  \hfill 
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{picture/Rosenbrock_residual_convergence_n10.png}
+    \caption{n=10时的残差下降图}
+    \label{fig:rosen_n10_res}
+  \end{subfigure}
+  \caption{n=10时Rosenbrock函数实验} 
+  \label{fig:rosen_n10}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth} 
+    \includegraphics[width=\textwidth]{picture/Powell_singular_gradient_convergence.png}
+    \caption{Powell函数梯度下降图}
+    \label{fig:powell_grad}
+  \end{subfigure}
+  \hfill 
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{picture/Powell_singular_residual_convergence.png}
+    \caption{Powell函数残差下降图}
+    \label{fig:powell_res}
+  \end{subfigure}
+  \caption{Powell奇异函数实验} 
+  \label{fig:powell}
+\end{figure}
+
+\subsection{实验分析}
+
+由图可以看出，在使用BFGS方法时，总是先经历一段平缓期，后在接近最优解时迅速下降，这也是拟牛顿方法的特点。
+
+其次可以看出BFGS方法收敛快，并且稳定。
+
+\end{document}
