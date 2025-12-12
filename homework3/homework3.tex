@@ -1,0 +1,328 @@
+\documentclass{article}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{forest}
+\usepackage{amssymb}
+\geometry{a4paper, margin=1in}
+
+\title{优化实用算法第三次作业报告}
+\author{3230104932 吴官旺}
+\date{\today}
+
+\begin{document}
+\maketitle
+\section*{第一题}
+\begin{proof}
+    由于$B_k$是对称正定的，那么$B^{-1}_k$也是对称正定的。
+    由于$p_k$是方程\[q_k(p) = \frac{1}{2}p^TB_kp+\nabla f(x_k)^Tp +f(x_k)\]的最小值点，则可知
+    \[p_k = -(B_k)^{-1}\nabla f(x_k)\]
+    由题可知：
+    \[f(x_k+p_k)-f(x_k) = \nabla f(x_k)^Tp_k +O(|p_k|) = -\nabla f(x_k)^T(B_k)^{-1}\nabla f(x_k) +O(|p_k|) \]
+    由于$B^{-1}_k$是对称正定的，所以$ -\nabla f(x_k)^T(B_k)^{-1}\nabla f(x_k)<0$，即有
+    \[f(x_k+p_k)-f(x_k)  < 0\]所以$p_k$是下降方向
+\end{proof}
+
+\section*{第二题}
+\begin{proof}
+    为了方便起见，我们记$g = \nabla f(x_k)$\\
+    由于我们是在$g$方向上搜索，且搜索区间不能超过$\Delta_k$,所以我们不妨设$q_k(p)$的最优解为
+    \[p^* = t_k \frac{\Delta_k}{\lVert g \rVert}g\]
+    其中$t_k \in \left[-1,1\right]$，则有
+    \begin{align*}
+        q_k(p^*) &= \frac{1}{2}p^{*T}B_kp^* + g^Tp^* +f(x_k)\\
+        &= \frac{1}{2}t_k^2\Delta_k^2\frac{g^TB_kg}{\lVert g \rVert^2} + t_k\Delta_k \lVert g \rVert +f(x_k)
+    \end{align*}
+    记\[ \pi(t) = \frac{1}{2}t^2\Delta_k^2\frac{g^TB_kg}{\lVert g \rVert^2} + t\Delta_k \lVert g \rVert + f(x_k)\]
+    这是一个二次函数，且对称轴为$$t^* = -\frac{\lVert g \rVert^3}{\Delta_k g^TB_kg}$$
+    \begin{itemize}
+        \item 若$g^TB_kg<0$,则二次函数开口向下，且$t^*>0$，所以最优解为$t_k = -1$，即\[p^* = -\frac{\Delta_k}{\lVert g \rVert}g\]
+        \item 若$g^TB_kg=0$,则二次函数为一次函数，且斜率大于0，所以最优解为$t_k = -1$，即\[p^* = -\frac{\Delta_k}{\lVert g \rVert}g\]
+        \item 若$g^TB_kg>0$，则二次函数开口向上，且$t^*<0$，则有两种情况：
+        \begin{itemize}
+            \item 若$t^* \geq -1$，则最优解为$t_k =-\frac{\lVert g \rVert^3}{\Delta_k g^TB_kg}$，即\[p^* = -\frac{\lVert g \rVert^2}{g^TB_kg}g\]
+            \item 若$t^* \leq -1$，则最优解为$t_k = -1$，即\[p^* = -\frac{\Delta_k}{\lVert g \rVert}g\]
+        \end{itemize}
+    \end{itemize}
+    综上所述，我们得到了$p^*$的表达式，即
+    \[p^* = \begin{cases}
+        -\frac{\Delta_k}{\lVert g \rVert}g,& g^TB_kg \leq 0\\
+        \min\{ -\frac{\lVert g \rVert^3}{\Delta_k g^TB_kg},-1\}\frac{\Delta_k}{\lVert g \rVert}g,& g^TB_kg >0\\
+        \end{cases}\]
+    这恰好就是Cauchy点的定义。所以证得Cauchy点为$q_k(p)$在$g$方向上的最优解。
+\end{proof}
+
+\section*{第三题}
+\begin{proof}
+    我们只需要证明：\[(B+\lambda I)\sum_{i=1}^{n}\frac{q_i^Tg}{\lambda_i+\lambda}q_i = g\]
+    而由题目可知:\[B +\lambda I = Q \Lambda Q^T + \lambda I = Q\begin{bmatrix}
+        \lambda_1+\lambda & & & \\
+        & \lambda_2+\lambda & &  \\
+        & & \ddots& \\
+        & & & \lambda_n +\lambda\\ 
+    \end{bmatrix}Q^T\]
+    \[\sum_{i=1}^{n}\frac{q_i^Tg}{\lambda_i+\lambda}q_i = \sum_{i=1}^{n}\frac{q_iq_i^T}{\lambda_i+\lambda}g =Q\begin{bmatrix}
+        \frac{1}{\lambda_1+\lambda} & & & \\
+        & \frac{1}{\lambda_2+\lambda} & &  \\
+        & & \ddots& \\
+        & & & \frac{1}{\lambda_n +\lambda}\\ 
+    \end{bmatrix}Q^Tg\] 
+    所以有\begin{align*}
+        (B+\lambda I)\sum_{i=1}^{n}\frac{q_i^Tg}{\lambda_i+\lambda}q_i = &Q\begin{bmatrix}
+        \lambda_1+\lambda & & & \\
+        & \lambda_2+\lambda & &  \\
+        & & \ddots& \\
+        & & & \lambda_n +\lambda\\ 
+    \end{bmatrix}Q^TQ\begin{bmatrix}
+        \frac{1}{\lambda_1+\lambda} & & & \\
+        & \frac{1}{\lambda_2+\lambda} & &  \\
+        & & \ddots& \\
+        & & & \frac{1}{\lambda_n +\lambda}\\ 
+    \end{bmatrix}Q^Tg \\
+    =&Q\begin{bmatrix}
+        \lambda_1+\lambda & & & \\
+        & \lambda_2+\lambda & &  \\
+        & & \ddots& \\
+        & & & \lambda_n +\lambda\\ 
+    \end{bmatrix}\begin{bmatrix}
+        \frac{1}{\lambda_1+\lambda} & & & \\
+        & \frac{1}{\lambda_2+\lambda} & &  \\
+        & & \ddots& \\
+        & & & \frac{1}{\lambda_n +\lambda}\\ 
+    \end{bmatrix}Q^Tg \\
+    =&QQ^Tg \\
+    =&g
+    \end{align*}
+    证毕\\
+    令\[\Lambda^* =\begin{bmatrix}
+        \frac{1}{\lambda_1+\lambda} & & & \\
+        & \frac{1}{\lambda_2+\lambda} & &  \\
+        & & \ddots& \\
+        & & & \frac{1}{\lambda_n +\lambda}\\ 
+    \end{bmatrix} \]
+    由题可知：
+    \[\lVert p(\lambda) \rVert  = p(\lambda)^T p(\lambda) = g^T Q \Lambda^* Q^T Q \Lambda^* Q^T g = g^T Q \Lambda^{*2} Q^T g \]
+    那么\begin{align*}
+        \frac{d\lVert p(\lambda) \rVert}{d\lambda} &= g^T Q \frac{d\Lambda^{*2}}{d\lambda} Q^T g \\
+        &= g^T Q \begin{bmatrix}
+        -\frac{2}{(\lambda_1+\lambda)^3} & & & \\
+        & -\frac{2}{(\lambda_2+\lambda)^3} & &  \\
+        & & \ddots& \\
+        & & & -\frac{2}{(\lambda_n +\lambda)^3}\\ 
+    \end{bmatrix} Q^T g \\
+        &=-2\sum_{i=1}^{n}\frac{(q_i^Tg)^2}{(\lambda_i+\lambda)^3}
+    \end{align*}
+\end{proof}
+
+\section*{第四题}
+记 \(g:=g_k\)，\(B:=B_k\)，\(\Delta:=\Delta_k\)，\(v:=B^{-1}g\)。则精确解为
+\[
+p_k=\begin{cases}
+-\,B^{-1}g, & \text{若 }\|B^{-1}g\|\le\Delta,\\[4pt]
+-\, (B+\lambda^* I)^{-1} g, & \text{其他情况}
+\end{cases}
+\]
+\[\text{其中 }\lambda^*>0\text{ 为唯一满足 }\|(B+\lambda I)^{-1}g\|=\Delta\text{ 的数}\]
+
+
+\begin{proof}
+记 \(S:=\operatorname{span}\{g,v\}\)。函数 \(m\) 在 \( \mathbb{R}^n\) 上严格凸，且无约束极小点为
+\[
+p_N=-B^{-1}g=-v.
+\]
+若 \(\|p_N\|\le\Delta\)，则 \(p_N\in S\) 且为可行点，故为最优解。
+
+若 \(\|p_N\|>\Delta\)，则最优解位于约束集的边界。引入拉格朗日乘子 \(\lambda\ge0\)，由 KKT 条件得
+\[
+\nabla m(p)+\lambda p=0 \quad\Longrightarrow\quad (B+\lambda I)p=-g.
+\]
+互补松弛和可行性给出 \(\lambda(\Delta-\|p\|)=0\) 且 \(\|p\|\le\Delta\)。因 \(\|p_N\|>\Delta\) 而最优点处约束活跃，故 \(\lambda>0\) 且 \(\|p\|=\Delta\)。于是任意 KKT 解可写为
+\[
+p(\lambda)=- (B+\lambda I)^{-1} g,\qquad \lambda>0,
+\]
+且 \(\lambda\) 需满足一标量方程
+\[
+\phi(\lambda):=\|p(\lambda)\|^2-\Delta^2=0.
+\]
+
+证明 \(\phi\) 在 \((0,\infty)\) 上有且仅有一根。对 \(B\) 作正交对角化 \(B=Q\Lambda Q^T\)，\(\Lambda=\operatorname{diag}(\mu_i)\)，\(\mu_i>0\)，令 \(\tilde g=Q^T g\)。则
+\[
+\|(B+\lambda I)^{-1}g\|^2=\sum_i\frac{\tilde g_i^2}{(\mu_i+\lambda)^2}.
+\]
+每项关于 \(\lambda\ge0\) 严格递减，故 \(\|(B+\lambda I)^{-1}g\|\) 及 \(\phi(\lambda)\) 在 \([0,\infty)\) 上严格递减。且
+\[
+\phi(0)=\|B^{-1}g\|^2-\Delta^2>0,\qquad \lim_{\lambda\to\infty}\phi(\lambda)=-\Delta^2<0.
+\]
+因此由介值定理与严格单调性，存在唯一 \(\lambda^*>0\) 使 \(\phi(\lambda^*)=0\)。因此最优解为
+\[
+p_k=p(\lambda^*)=- (B+\lambda^* I)^{-1} g.
+\]
+
+最后，注意对任意 \(\lambda\ge0\) 有 \((B+\lambda I)^{-1}g\in\operatorname{span}\{g,B^{-1}g\}\)，因此所得解确实位于 \(S\) 中。证毕。
+\end{proof}
+
+\section*{第五题}
+\subsection*{(a)}
+部分代码如下：
+\begin{verbatim}
+def f(x):
+    return 0.5 * (1 - 2*x[1] + 2*x[1]**2  - 2*x[1]*x[0]**2 + x[0]**4)
+
+def grad_f(x):
+    dfdx0 = -2*x[0]*x[1] + 2*x[0]**3
+    dfdx1 = -1 + 2*x[1] - x[0]**2
+    return np.array([dfdx0, dfdx1])
+
+def hess_f(x):
+    d2fdx00 = -2*x[1] + 6*x[0]**2
+    d2fdx01 = -2*x[0]
+    d2fdx11 = 2
+    return np.array([[d2fdx00, d2fdx01],
+                     [d2fdx01, d2fdx11]])
+
+if __name__ == "__main__":
+    x_star = np.array([1.0,1.0])
+    x_1 = np.array([3.0,2.0])   
+    tol = 1e-6
+    max_iter = 1000
+    print("用Newton方法处理题5中的函数...")
+    x,num_iter = newton_method_with_explicit_linesearch(f, grad_f, hess_f, x_1, tol=tol, max_iter=max_iter, save_full_data=True,
+                filename="question5_newton_results.txt")
+    print(f"最终迭代次数为： {num_iter}")
+    print(f"最终解为： {x}")
+    draw_gradient_convergence(filename="question5_newton_results.txt",save_plot=True,
+                              plot_filename="question5_newton_gradient_convergence.png")
+    translate(x_star=x_star,input_filename="question5_newton_results.txt",
+              output_filename="question5_newton_residual_results.txt"
+              )
+    draw_residual_convergence(filename="question5_newton_residual_results.txt",save_plot=True,
+                              plot_filename="question5_newton_residual_convergence.png")
+    print("="*50)
+
+\end{verbatim}
+其中newton法的代码如下：
+\begin{verbatim}
+    def newton_method_with_explicit_linesearch(f, grad_f, hess_f, x0, tol=1e-5, max_iter=1000, 
+                                 save_full_data=False, filename="newton_explicit_linesearch_results.txt"):
+    data_dir = Path("data")
+    data_dir.mkdir(exist_ok=True)
+    filepath = data_dir / filename
+    
+    x = x0.copy()
+    
+    with open(filepath, 'w') as file:
+        if save_full_data:
+            file.write("iteration,gradient_norm,x\n")
+        else:
+            file.write("iteration,gradient_norm\n")
+        
+        for i in range(max_iter):
+            grad = grad_f(x)
+            hess = hess_f(x)
+            norm_grad = np.linalg.norm(grad)
+
+            if save_full_data:
+                file.write(f"{i},{norm_grad},{x.tolist()}\n")
+            else:
+                file.write(f"{i},{norm_grad}\n")
+            
+            if norm_grad < tol:
+                return x, i
+            
+            try:
+                direction = np.linalg.solve(hess, -grad)  
+            except np.linalg.LinAlgError:
+                print("Hessian is singular. Using gradient descent direction.")
+                direction = -grad 
+            else:
+                if np.dot(direction, grad) >= 0:
+                    print("Hessian is not positive definite. Using gradient descent direction.")
+                    direction = -grad
+            
+            
+            def f_alpha(alpha):
+                return f(x + alpha * direction)
+            alpha_opt = golden_section_search(f_alpha)
+            x = x + alpha_opt * direction
+    
+    print("最大迭代次数达到，未收敛。")
+    return x, max_iter
+\end{verbatim}
+具体其他代码，详见https://github.com/WuGuanwang/Optimization-homework
+\subsection*{(b)}
+我们可以计算得到：
+\[\nabla^2 f(x) = \begin{bmatrix}
+-2x_2 + 6x_1^2 & -2x_1 \\
+-2x_1 & 2
+\end{bmatrix}\]
+\[\nabla r(x) = \begin{bmatrix}
+    -2x_1  & 1\\
+    0 & -1 \\
+\end{bmatrix}\\\]
+\[\nabla r(x)^T \nabla r(x) = \begin{bmatrix}
+    4x_1^2 & -2x_1 \\
+    -2x_1 & 2\\
+\end{bmatrix}\]
+于是\[\nabla^2 f(x) - \nabla r(x)^T \nabla r(x) = \begin{bmatrix}
+    -2x_2 + 6x_1^2 - 4x_1^2 & -2x_1 + 2x_1 \\
+    -2x_1 + 2x_1 & 2 - 2\\
+\end{bmatrix} = \begin{bmatrix}
+    -2x_2 + 2x_1^2 & 0 \\
+    0 & 0\\
+\end{bmatrix}\]
+当$x \to x^* $时
+\[\nabla^2 f(x) - \nabla r(x)^T \nabla r(x) \to \begin{bmatrix}
+    0 & 0 \\
+    0 & 0 \\
+\end{bmatrix}\]
+所以\[ \nabla^2 f(x) \to \nabla r(x)^T \nabla r(x) \]
+
+\section*{第六题}
+\begin{proof}
+    由于\(A^TA\)是对称正定矩阵，所以存在正交矩阵\(Q\)与对角阵\(\Lambda\)使得
+    \[A^TA = Q^T\Lambda Q\]
+    那么则有
+    \[(A^TA + \mu I)x = (Q^T\Lambda Q + \mu I )x = Q^T(\Lambda + \mu I)Qx = -A^Tr\]
+    解得
+    \[x = -Q^T(\Lambda +\mu I)^{-1}QA^Tr\]
+    于是有
+    \[Ax + r = -AQ^T(\Lambda +\mu I)^{-1}QA^Tr +r\]
+    \begin{align*}
+        \lVert Ax+r \rVert &= (Ax+r)^T(Ax+r)\\
+        &= (-AQ^T(\Lambda +\mu I)^{-1}QA^Tr +r)^T(-AQ^T(\Lambda +\mu I)^{-1}QA^Tr +r)\\
+        &= r^TAQ^T(\Lambda +\mu I)^{-1}QA^TAQ^T(\Lambda +\mu I)^{-1}QA^Tr -2r^TAQ^T(\Lambda +\mu I)^{-1}QA^Tr+r^Tr\\
+    \end{align*}
+    为了方便起见，令\[B(\mu) = AQ^T(\Lambda +\mu I)^{-1}QA^T\]
+    则\[ \lVert Ax+r \rVert = r^TB(\mu)B(\mu)r -2r^TB(\mu)r + r^Tr = r^T(B(\mu)-I)^2r\]
+    \[\frac{d}{d \mu} \lVert Ax+r \rVert  = 2r^T(B(\mu)-I) \frac{d}{d \mu}B(\mu)r \]
+    注意矩阵 \(AA^T\) 与 \(B(\mu)\) 具有相同的特征向量。设
+    \[
+    AA^T u=\lambda u,
+    \]
+    则（若 \(A^Tu\neq0\)）有 \(A^TA(A^Tu)=\lambda (A^Tu)\)，即 \(\lambda\) 也是 \(A^TA\) 的特征值。对该特征向量计算
+    \[
+    (A^TA+\mu I)^{-1}A^T u=\frac{1}{\lambda+\mu}A^T u,
+    \]
+    从而
+    \[
+    B(\mu)u=A(A^TA+\mu I)^{-1}A^T u=\frac{\lambda}{\lambda+\mu}u.
+    \]
+    因此，若将 \(B(\mu)\) 对角化，存在正交矩阵 \(P\) 使得
+    \[
+    B(\mu)=P^T\operatorname{diag}\big(b_i(\mu)\big)P,\qquad
+    b_i(\mu)=\frac{\lambda_i}{\lambda_i+\mu},
+    \]
+    其中 \(\{\lambda_i\}\) 为 \(AA^T\) 的特征值
+    由此\[B(\mu) - I = P^T(\text{diag}\big(b_i(\mu)\big)-I)P\]
+    \[\frac{d}{d \mu}B(\mu) = P^T\operatorname{diag}\big(b_i'(\mu)\big)P\]
+    其中 \(b_i'(\mu) = -\frac{\lambda_i}{(\lambda_i+\mu)^2}\)
+    所以\(B(\mu)-I\)与\(\frac{d}{d \mu}B(\mu)\)均为负定矩阵，所以\((B(\mu)-I)\frac{d}{d \mu}B(\mu)\)是对称正定矩阵，所以
+    \[\frac{d}{d \mu} \lVert Ax+r \rVert = 2r^T(B(\mu)-I) \frac{d}{d \mu}B(\mu)r >0\]
+    所以当\(\mu_2>\mu_1\)时，\(\lVert Ax_2+r \rVert>\lVert Ax_1+r \rVert\).
+\end{proof}
+
+
+\end{document}
